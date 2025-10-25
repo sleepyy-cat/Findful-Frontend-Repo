@@ -1,0 +1,13 @@
+A user keeps misplacing their belongings, and wants a better way to keep track of them, so they create an account on Findful and open up the app.
+
+On the home page, they can click on the spaces category to go to spaces page, where they can access their current spaces. There aren't any yet, so they make a new space by clicking on the "new space" button on that page. They make a space map for their current house, then add rooms corresponding to each of the rooms by clicking on the button in the space map. Within each room, they can further subdivide into spaces such as furniture and compartments by clicking buttons on the page for the space they want to subdivide.
+
+When they are done with creating their location mapping, they can begin to add their belongings one by one. They can do so by clicking a button on the belongings page or within a storage location's page, which leads them to a form where they can enter item information (and pick a location if they're creating the item from the items page, otherwise the location is default). They can move the item by clicking on it and changing its location field. They can access all items on the belongings page.
+
+To delete a space (for example, if they donate a cabinet), they click on the page for that space and there's a button to do so--all the items previously in that space are now in its parent space (note that the highest level parent space is the living spaces page/user's inventory, which cannot be deleted, and can be accessed from the living spaces page). If a living space is deleted, then all items within it automatically go to the highest level parent space (which can be thought of as a temporary storage pod, consisting of a simple list of items) until they're relocated.
+
+When the user forgets where they put an item, they go to the search bar on the home page and type in the item name, which returns a list of locations for the item, including where it currently is and its entire location history.
+
+The user likes going to the gym a lot, but often forgets their water bottle or other gym gear. So, they decide to create a bundle by clicking on the "new bundle" button on the bundles page, where they can add items such as water bottle, gym shoes, and so on. The bundle provides a checklist that they can use every time before they go to the gym, and they can uncheck the boxes when they're done using it that time. There are also options to delete items from the bundles (using the red x's) if the items no longer belong in those bundles, or to delete the bundle altogether.
+
+With all this, the user is finally satisfied, and never loses belongings or forgets their gym gear ever again.
