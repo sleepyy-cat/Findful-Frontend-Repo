@@ -4,7 +4,9 @@
 
     <section>
       <h3>Create Space</h3>
+      <input v-model="form.owner" placeholder="owner (user id)" />
       <input v-model="form.name" placeholder="name" />
+      <input v-model="form.spaceType" placeholder="space type" />
       <button @click="create">Create</button>
       <div v-if="msg" class="msg">{{ msg }}</div>
     </section>
@@ -16,11 +18,13 @@
         <li v-for="s in spaces" :key="s.id">
           <div v-if="editingId !== s.id">
             <strong>{{ s.name }}</strong>
+            <div class="meta">Owner: {{ s.owner }} • Type: {{ s.spaceType }}</div>
             <button @click="startEdit(s)">Edit</button>
             <button @click="remove(s.id)">Delete</button>
           </div>
           <div v-else>
-            <input v-model="editForm.name" />
+            <input v-model="editForm.name" placeholder="name" />
+            <input v-model="editForm.spaceType" placeholder="space type" />
             <button @click="saveEdit">Save</button>
             <button @click="cancelEdit">Cancel</button>
           </div>
@@ -33,7 +37,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { createSpace, getSpaces, updateSpace, deleteSpace, Space } from '../api/space'
+import { createSpace, getSpaces, updateSpace, deleteSpaceById } from '../api/space'
+import type { Space } from '../api/space'
 
 const form = reactive<Partial<Space>>({ name: '' })
 const spaces = ref<Space[]>([])
@@ -44,9 +49,20 @@ async function create() {
   msg.value = ''
   err.value = ''
   try {
-    await createSpace(form)
+    if (!form.owner || !form.name || !form.spaceType) {
+      err.value = 'owner, name and spaceType are required'
+      return
+    }
+    await createSpace({
+      owner: String(form.owner),
+      name: String(form.name),
+      spaceType: String(form.spaceType),
+      parent: form.parent ?? null,
+    })
     msg.value = 'Created'
     form.name = ''
+    form.owner = ''
+    form.spaceType = ''
     await load()
   } catch (e: any) {
     err.value = e?.message ?? String(e)
@@ -91,7 +107,7 @@ async function saveEdit() {
 async function remove(id?: string) {
   if (!id) return
   try {
-    await deleteSpace(id)
+    await deleteSpaceById(id)
     await load()
   } catch (e: any) {
     err.value = e?.message ?? String(e)

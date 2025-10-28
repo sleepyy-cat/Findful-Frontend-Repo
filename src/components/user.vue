@@ -31,14 +31,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { registerUser, authenticateUser, getUsers } from '../api/user'
+import { registerUser, authenticateUser, getUsersString } from '../api/user'
 
 const registerForm = reactive({ username: '', password: '' })
 const loginForm = reactive({ username: '', password: '' })
 
 const registerMsg = ref('')
 const loginMsg = ref('')
-const users = ref<Array<{ username: string; password?: string }>>([])
+const users = ref<Array<{ username: string }>>([])
 const usersError = ref('')
 
 async function onRegister() {
@@ -46,9 +46,12 @@ async function onRegister() {
   try {
     const res = await registerUser(registerForm.username, registerForm.password)
     registerMsg.value = res?.user ? `Registered ${res.user.username}` : 'Registered'
+    // clear password after successful registration
+    registerForm.password = ''
     await loadUsers()
   } catch (err: any) {
-    registerMsg.value = err?.message ?? String(err)
+    console.error('Register error', err)
+    registerMsg.value = err?.response?.data?.error ?? err?.message ?? String(err)
   }
 }
 
@@ -57,15 +60,18 @@ async function onLogin() {
   try {
     await authenticateUser(loginForm.username, loginForm.password)
     loginMsg.value = 'Authenticated'
+    // clear sensitive field
+    loginForm.password = ''
   } catch (err: any) {
-    loginMsg.value = err?.message ?? String(err)
+    console.error('Auth error', err)
+    loginMsg.value = err?.response?.data?.error ?? err?.message ?? String(err)
   }
 }
 
 async function loadUsers() {
   usersError.value = ''
   try {
-    const res = await getUsers()
+    const res = await getUsersString()
     users.value = Array.isArray(res) ? res : []
   } catch (err: any) {
     usersError.value = err?.message ?? String(err)
