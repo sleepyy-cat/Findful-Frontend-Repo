@@ -116,7 +116,7 @@ export async function getSpace(id: string): Promise<Space> {
 /** Get all Spaces */
 export async function getSpaces(): Promise<GetSpacesResponse> {
   try {
-    const res = await api.post('/api/Space/_getSpaces', {})
+    const res = await api.post('/api/Space/getSpaces', {})
     return res.data as GetSpacesResponse
   } catch (e) {
     return handleAxiosError(e)

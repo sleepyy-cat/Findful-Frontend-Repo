@@ -4,15 +4,17 @@
 
     <section>
       <h3>Create Bundle</h3>
+      <input v-model="form.owner" placeholder="owner (user id)" />
       <input v-model="form.name" placeholder="name" />
       <input v-model="newItemId" placeholder="add item id" />
       <button @click="addItemId">Add Item ID</button>
       <div class="items">
-        <span v-for="(it, i) in form.items" :key="i"
+        <span v-for="(it, i) in form.members" :key="i"
           >{{ it }} <button @click="removeItem(i)">x</button></span
         >
       </div>
       <button @click="create">Create</button>
+      <div v-if="createErr" class="err">{{ createErr }}</div>
       <div v-if="msg" class="msg">{{ msg }}</div>
     </section>
 
@@ -20,11 +22,12 @@
       <h3>All Bundles</h3>
       <button @click="load">Reload</button>
       <ul>
-        <li v-for="b in bundles" :key="b.id">
-          <div v-if="editingId !== b.id">
-            <strong>{{ b.name }}</strong> — items: {{ (b.items || []).join(', ') }}
+        <li v-for="b in bundles" :key="b.name">
+          <div v-if="editingId !== b.name">
+            <strong>{{ b.name }}</strong> — Owner: {{ b.owner }} — members:
+            {{ (b.members || []).join(', ') || 'none' }}
             <button @click="startEdit(b)">Edit</button>
-            <button @click="remove(b.id)">Delete</button>
+            <button @click="remove(b.name, b.owner)">Delete</button>
           </div>
 
           <div v-else>
@@ -32,7 +35,7 @@
             <input v-model="editNewItem" placeholder="add item id" />
             <button @click="editAddItem">Add</button>
             <div>
-              <span v-for="(it, idx) in editForm.items" :key="idx"
+              <span v-for="(it, idx) in editForm.members" :key="idx"
                 >{{ it }} <button @click="editRemoveItem(idx)">x</button></span
               >
             </div>
@@ -48,37 +51,49 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { createBundle, getBundles, updateBundle, deleteBundle, Bundle } from '../api/bundle'
+import { createBundle, getBundles, updateBundle, deleteBundle } from '../api/bundle'
+import type { Bundle } from '../api/bundle'
 
-const form = reactive<Partial<Bundle>>({ name: '', items: [] })
+const form = reactive<Partial<Bundle>>({ name: '', owner: '', members: [] })
 const newItemId = ref('')
 const bundles = ref<Bundle[]>([])
 const msg = ref('')
 const err = ref('')
+const createErr = ref('')
 
 async function create() {
   msg.value = ''
   err.value = ''
+  createErr.value = ''
   try {
-    await createBundle(form)
+    if (!form.owner || !form.name) {
+      createErr.value = 'owner and name are required'
+      return
+    }
+    await createBundle({
+      user: String(form.owner),
+      name: String(form.name),
+    })
     msg.value = 'Created'
     form.name = ''
-    form.items = []
+    form.owner = ''
+    form.members = []
     await load()
   } catch (e: any) {
-    err.value = e?.message ?? String(e)
+    const message = e?.message ?? String(e)
+    createErr.value = message
   }
 }
 
 function addItemId() {
   if (newItemId.value.trim()) {
-    form.items = [...(form.items || []), newItemId.value.trim()]
+    form.members = [...(form.members || []), newItemId.value.trim()]
     newItemId.value = ''
   }
 }
 
 function removeItem(i: number) {
-  form.items = (form.items || []).filter((_, idx) => idx !== i)
+  form.members = (form.members || []).filter((_: any, idx: number) => idx !== i)
 }
 
 async function load() {
@@ -92,33 +107,33 @@ async function load() {
 }
 
 const editingId = ref<string | null>(null)
-const editForm = reactive<Partial<Bundle>>({ id: '', name: '', items: [] })
+const editForm = reactive<Partial<Bundle>>({ owner: '', name: '', members: [] })
 const editNewItem = ref('')
 
 function startEdit(b: Bundle) {
-  editingId.value = b.id || null
-  editForm.id = b.id
+  editingId.value = b.name || null
+  editForm.owner = b.owner
   editForm.name = b.name
-  editForm.items = (b.items || []).slice()
+  editForm.members = (b.members || []).slice()
 }
 
 function cancelEdit() {
   editingId.value = null
-  editForm.id = ''
+  editForm.owner = ''
   editForm.name = ''
-  editForm.items = []
+  editForm.members = []
   editNewItem.value = ''
 }
 
 function editAddItem() {
   if (editNewItem.value.trim()) {
-    editForm.items = [...(editForm.items || []), editNewItem.value.trim()]
+    editForm.members = [...(editForm.members || []), editNewItem.value.trim()]
     editNewItem.value = ''
   }
 }
 
 function editRemoveItem(i: number) {
-  editForm.items = (editForm.items || []).filter((_, idx) => idx !== i)
+  editForm.members = (editForm.members || []).filter((_: any, idx: number) => idx !== i)
 }
 
 async function saveEdit() {
@@ -131,10 +146,10 @@ async function saveEdit() {
   }
 }
 
-async function remove(id?: string) {
-  if (!id) return
+async function remove(name?: string, owner?: string) {
+  if (!name || !owner) return
   try {
-    await deleteBundle(id)
+    await deleteBundle({ user: owner, name })
     await load()
   } catch (e: any) {
     err.value = e?.message ?? String(e)

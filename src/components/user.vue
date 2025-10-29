@@ -18,11 +18,21 @@
       <input v-model="loginForm.password" type="password" placeholder="password" />
       <button @click="onLogin">Login</button>
       <div v-if="loginMsg" :class="{ error: loginError, success: !loginError }">{{ loginMsg }}</div>
+
+      <!-- Only show this button if the user is logged in -->
+      <button v-if="isAuthenticated" @click="goToSpaces" style="margin-top: 0.5rem">
+        Go to Spaces
+      </button>
+      <button v-if="showBundlesLink" @click="goToBundles" style="margin-top: 0.5rem">
+        Go to Bundles
+      </button>
+      <button v-if="showItemsLink" @click="goToItems" style="margin-top: 0.5rem">
+        Go to Items
+      </button>
     </section>
 
     <section>
       <h3>All Users</h3>
-      <button @click="loadUsers">Reload</button>
       <ul>
         <li v-for="u in users" :key="u.username">{{ u.username }}</li>
       </ul>
@@ -44,6 +54,22 @@ const loginMsg = ref('')
 const loginError = ref(false)
 const users = ref<Array<{ username: string }>>([])
 const usersError = ref('')
+const isAuthenticated = ref(false) // Minimal auth flag used by the template (e.g., to show a Spaces button when logged in)
+const showBundlesLink = ref(false)
+const showItemsLink = ref(false)
+
+function goToSpaces() {
+  // Minimal navigation helper; if you're using vue-router, you can replace this with router.push('/space')
+  window.location.href = '/space'
+}
+
+function goToBundles() {
+  window.location.href = '/bundle'
+}
+
+function goToItems() {
+  window.location.href = '/item'
+}
 
 async function onRegister() {
   registerMsg.value = ''
@@ -115,6 +141,9 @@ async function onLogin() {
     await authenticateUser(loginForm.username, loginForm.password)
     loginMsg.value = 'Successfully logged in'
     loginError.value = false
+    isAuthenticated.value = true // Set isAuthenticated on successful login
+    showBundlesLink.value = true
+    showItemsLink.value = true
     // clear sensitive field
     loginForm.password = ''
   } catch (err: any) {
