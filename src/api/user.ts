@@ -9,9 +9,10 @@ const api = axios.create({
 export interface User {
   username: string
   password: string
+  [key: string]: any
 }
 
-// Responses based on `api-spec-user.md`
+// Responses based on api-spec-user.md
 export interface RegisterUserResponse {
   user: User
 }
@@ -30,7 +31,6 @@ function handleAxiosError(e: any): Promise<never> {
   const msg =
     data?.error ?? (typeof data === 'string' ? data : undefined) ?? e?.message ?? 'Unknown error'
   const err = new Error(`${msg} (status ${status ?? 'unknown'})`)
-  // attach original response for callers that want structured data
   ;(err as any).response = e?.response
   return Promise.reject(err)
 }
@@ -84,7 +84,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
 /** Get all usernames as an array of objects with a `username` field. */
 export async function getUsersString(): Promise<GetUsersStringResponse> {
   try {
-    const res = await api.post('/api/User/_getUsersString', {})
+    const res = await api.post('/api/User/getUsersString', {})
     return res.data as GetUsersStringResponse
   } catch (e) {
     return handleAxiosError(e)
